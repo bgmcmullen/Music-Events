@@ -1,9 +1,9 @@
 'use strict';
 
-const eventsModel = (sequelize, DataTypes) => sequelize.define('Food', {
+const eventsModel = (sequelize, DataTypes) => sequelize.define('Events', {
   name: { type: DataTypes.STRING, required: true },
-  calories: { type: DataTypes.INTEGER, required: true },
-  type: { type: DataTypes.ENUM('fruit', 'vegetable', 'protein'), required: true }
+  date:{ type: DataTypes.STRING, required: true},
+  venue: { type: DataTypes.STRING, required: true }
 });
 
 module.exports = eventsModel;
