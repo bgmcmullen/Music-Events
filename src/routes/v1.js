@@ -1,70 +1,35 @@
 'use strict';
 
 const express = require('express');
-const dataModules = require('../models');
+const dataModules = require('../models/index.js');
+
+const bearerAuth = require('../auth/middleware/bearer.js');
+const permissions = require('../auth/middleware/acl.js');
 
 const router = express.Router();
 
-const { users } = require('../auth/models');
-const basicAuth = require('../auth/middleware/basic.js')
-const bearerAuth = require('../auth/middleware/bearer.js')
-const permissions = require('../auth/middleware/acl.js')
-
 router.param('model', (req, res, next) => {
-  const modelName = req.params.model;
+  const modelName = req.params.model; // food
+  console.log("model:",modelName);
   if (dataModules[modelName]) {
     req.model = dataModules[modelName];
     next();
   } else {
     next('Invalid Model');
   }
+
 });
 
-
-router.post('/signup', signup);
-router.post('/signin', basicAuth, signin);
-router.get('/users', bearerAuth, permissions('delete'), findUsers);
-router.get('/secret', bearerAuth, permissions('create'), secret);
-
-
-router.get('/:model', bearerAuth, handleGetAll);
-router.get('/:model/:id', bearerAuth, handleGetOne);
-router.post('/:model', bearerAuth, permissions('create'), handleCreate);
-router.put('/:model/:id',bearerAuth, permissions('update'),handleUpdate);
-router.delete('/:model/:id',bearerAuth, permissions('delete'),handleDelete);
-
-async function signup(req, res, next) {
-  try {
-    let userRecord = await users.create(req.body);
-    const output = {
-      user: userRecord,
-      token: userRecord.token
-    };
-    res.status(201).json(output);
-  } catch (e) {
-    next(e.message)
-  }
-}
-
-async function signin(req, res, next) {
-  const user = {
-    user: req.user,
-    token: req.user.token
-  };
-  res.status(200).json(user);
-}
-
-async function findUsers(req, res, next) {
-  const userRecords = await users.findAll({});
-  const list = userRecords.map(user => user.username);
-  res.status(200).json(list);
-}
-
-async function secret(req, res, next) {
-  res.status(200).send('Welcome to the secret area')
-}
+// ---- /api/v1/food
+//      "food" is the :model parameter
+router.get('/:model', bearerAuth, permissions("read"), handleGetAll);
+router.get('/:model/:id', bearerAuth, permissions("read"), handleGetOne);
+router.post('/:model', bearerAuth, permissions("create"), handleCreate);
+router.put('/:model/:id', bearerAuth, permissions("update"), handleUpdate);
+router.delete('/:model/:id', bearerAuth, permissions("delete"), handleDelete);
 
 async function handleGetAll(req, res) {
+  // Food.get or Clothes.get
   let allRecords = await req.model.get();
   res.status(200).json(allRecords);
 }
@@ -79,6 +44,7 @@ async function handleCreate(req, res) {
   let obj = req.body;
   let newRecord = await req.model.create(obj);
   res.status(201).json(newRecord);
+  console.log("new record:",newRecord);
 }
 
 async function handleUpdate(req, res) {
