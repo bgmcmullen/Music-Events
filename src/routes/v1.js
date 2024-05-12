@@ -9,7 +9,7 @@ const permissions = require('../auth/middleware/acl.js');
 const router = express.Router();
 
 router.param('model', (req, res, next) => {
-  const modelName = req.params.model; // food
+  const modelName = req.params.model;
   console.log("model:",modelName);
   if (dataModules[modelName]) {
     req.model = dataModules[modelName];
@@ -20,8 +20,7 @@ router.param('model', (req, res, next) => {
 
 });
 
-// ---- /api/v1/food
-//      "food" is the :model parameter
+
 router.get('/:model', bearerAuth, permissions("read"), handleGetAll);
 router.get('/:model/:id', bearerAuth, permissions("read"), handleGetOne);
 router.post('/:model', bearerAuth, permissions("create"), handleCreate);
@@ -29,14 +28,13 @@ router.put('/:model/:id', bearerAuth, permissions("update"), handleUpdate);
 router.delete('/:model/:id', bearerAuth, permissions("delete"), handleDelete);
 
 async function handleGetAll(req, res) {
-  // Food.get or Clothes.get
   let allRecords = await req.model.findAll({});
   res.status(200).json(allRecords);
 }
 
 async function handleGetOne(req, res) {
   const id = req.params.id;
-  let theRecord = await req.model.get(id)
+  let theRecord = await req.model.findOne({ where: { id } });
   res.status(200).json(theRecord);
 }
 
